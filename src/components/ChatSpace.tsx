@@ -109,7 +109,9 @@ const ChatSpace = memo(
     onCopyHistory,
     availableModels,
   }: ChatSpaceProps) => {
-    const [menuAnchorEl, setMenuAnchorEl] = React.useState<null | HTMLElement>(null);
+    const [menuAnchorEl, setMenuAnchorEl] = React.useState<null | HTMLElement>(
+      null
+    );
     const isMenuOpen = Boolean(menuAnchorEl);
 
     // メニューを開く
@@ -142,20 +144,26 @@ const ChatSpace = memo(
     // サイズに応じた高さを計算
     const getHeightBySize = () => {
       switch (space.size) {
-        case "small": return "240px";
-        case "large": return "480px";
+        case "small":
+          return "240px";
+        case "large":
+          return "480px";
         case "medium":
-        default: return "320px";
+        default:
+          return "320px";
       }
     };
 
     // サイズに応じた幅を計算
     const getWidthBySize = () => {
       switch (space.size) {
-        case "small": return { xs: "100%", sm: "47%", md: "30%", lg: "22%" };
-        case "large": return { xs: "100%", sm: "100%", md: "63%", lg: "48%" };
+        case "small":
+          return { xs: "100%", sm: "47%", md: "30%", lg: "22%" };
+        case "large":
+          return { xs: "100%", sm: "100%", md: "63%", lg: "48%" };
         case "medium":
-        default: return { xs: "100%", sm: "47%", md: "30%", lg: "22%" };
+        default:
+          return { xs: "100%", sm: "47%", md: "30%", lg: "22%" };
       }
     };
 
@@ -237,23 +245,26 @@ const ChatSpace = memo(
                 <AspectRatioIcon fontSize="small" sx={{ mr: 1 }} />
                 大サイズ
               </MenuItem>
-              <MenuItem onClick={handleCopyHistory} disabled={space.messages.length === 0}>
+              <MenuItem
+                onClick={handleCopyHistory}
+                disabled={space.messages.length === 0}
+              >
                 <ContentCopyIcon fontSize="small" sx={{ mr: 1 }} />
                 履歴をコピー
               </MenuItem>
             </Menu>
-            <IconButton 
-              size="small" 
-              onClick={() => onClear(space.id)} 
+            <IconButton
+              size="small"
+              onClick={() => onClear(space.id)}
               title="会話をクリア"
               disabled={space.loading}
               sx={{ color: "#666666", "&:hover": { color: "#333333" } }}
             >
               <ClearAllIcon />
             </IconButton>
-            <IconButton 
-              size="small" 
-              onClick={() => onRemove(space.id)} 
+            <IconButton
+              size="small"
+              onClick={() => onRemove(space.id)}
               title="チャットスペースを削除"
               disabled={space.loading}
               sx={{ color: "#666666", "&:hover": { color: "#333333" } }}
@@ -300,7 +311,11 @@ const ChatSpace = memo(
           )}
 
           {space.error && (
-            <Typography color="error" variant="body2" sx={{ mt: 1, color: "#aa0000" }}>
+            <Typography
+              color="error"
+              variant="body2"
+              sx={{ mt: 1, color: "#aa0000" }}
+            >
               Error: {space.error}
             </Typography>
           )}

@@ -2,9 +2,9 @@ import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import ChatSpace from "../../components/ChatSpace";
-import { ChatSpace as ChatSpaceType, ChatMessage } from '../../types';
+import { ChatSpace as ChatSpaceType, ChatMessage } from "../../types";
 
-describe('ChatSpace Component', () => {
+describe("ChatSpace Component", () => {
   // モックの関数を作成
   const onRemoveMock = jest.fn();
   const onClearMock = jest.fn();
@@ -15,16 +15,16 @@ describe('ChatSpace Component', () => {
   // テスト用のメッセージ配列
   const testMessages: ChatMessage[] = [
     {
-      id: '1',
-      content: 'Hello, how are you?',
-      role: 'user',
+      id: "1",
+      content: "Hello, how are you?",
+      role: "user",
       timestamp: 1620000000000,
     },
     {
-      id: '2',
-      content: 'I am fine, thank you!',
-      role: 'assistant',
-      model: 'gpt-4',
+      id: "2",
+      content: "I am fine, thank you!",
+      role: "assistant",
+      model: "gpt-4",
       timestamp: 1620000060000,
     },
   ];
@@ -32,9 +32,9 @@ describe('ChatSpace Component', () => {
   // テスト用のモデル配列
   const testModels = [
     {
-      id: 'model1',
-      name: 'Model 1',
-      description: 'Test Model 1',
+      id: "model1",
+      name: "Model 1",
+      description: "Test Model 1",
       context_length: 4000,
       pricing: {
         prompt: 0.01,
@@ -42,9 +42,9 @@ describe('ChatSpace Component', () => {
       },
     },
     {
-      id: 'model2',
-      name: 'Model 2',
-      description: 'Test Model 2',
+      id: "model2",
+      name: "Model 2",
+      description: "Test Model 2",
       context_length: 8000,
       pricing: {
         prompt: 0.02,
@@ -55,12 +55,12 @@ describe('ChatSpace Component', () => {
 
   // テスト用のChatSpaceオブジェクト
   const testChatSpace: ChatSpaceType = {
-    id: 'test-space',
+    id: "test-space",
     messages: testMessages,
     loading: false,
     error: null,
-    selectedModel: 'model1',
-    size: 'medium', // 追加
+    selectedModel: "model1",
+    size: "medium", // 追加
   };
 
   // 各テスト前にモック関数をリセット
@@ -72,7 +72,7 @@ describe('ChatSpace Component', () => {
     onCopyHistoryMock.mockClear(); // 追加
   });
 
-  it('renders messages correctly', () => {
+  it("renders messages correctly", () => {
     render(
       <ChatSpace
         space={testChatSpace}
@@ -86,14 +86,14 @@ describe('ChatSpace Component', () => {
     );
 
     // ユーザーのメッセージが表示されることを確認
-    expect(screen.getByText('Hello, how are you?')).toBeInTheDocument();
+    expect(screen.getByText("Hello, how are you?")).toBeInTheDocument();
     // アシスタントの応答が表示されることを確認
-    expect(screen.getByText('I am fine, thank you!')).toBeInTheDocument();
+    expect(screen.getByText("I am fine, thank you!")).toBeInTheDocument();
     // モデル名が表示されることを確認
-    expect(screen.getByText('gpt-4')).toBeInTheDocument();
+    expect(screen.getByText("gpt-4")).toBeInTheDocument();
   });
 
-  it('calls onRemove when delete button is clicked', () => {
+  it("calls onRemove when delete button is clicked", () => {
     render(
       <ChatSpace
         space={testChatSpace}
@@ -107,14 +107,14 @@ describe('ChatSpace Component', () => {
     );
 
     // 削除ボタンを探してクリック
-    const deleteButton = screen.getByTitle('チャットスペースを削除');
+    const deleteButton = screen.getByTitle("チャットスペースを削除");
     fireEvent.click(deleteButton);
 
     // onRemove関数がChatSpaceのIDで呼び出されたことを確認
-    expect(onRemoveMock).toHaveBeenCalledWith('test-space');
+    expect(onRemoveMock).toHaveBeenCalledWith("test-space");
   });
 
-  it('calls onClear when clear button is clicked', () => {
+  it("calls onClear when clear button is clicked", () => {
     render(
       <ChatSpace
         space={testChatSpace}
@@ -128,14 +128,14 @@ describe('ChatSpace Component', () => {
     );
 
     // クリアボタンを探してクリック
-    const clearButton = screen.getByTitle('会話をクリア');
+    const clearButton = screen.getByTitle("会話をクリア");
     fireEvent.click(clearButton);
 
     // onClear関数がChatSpaceのIDで呼び出されたことを確認
-    expect(onClearMock).toHaveBeenCalledWith('test-space');
+    expect(onClearMock).toHaveBeenCalledWith("test-space");
   });
 
-  it('shows loading indicator when space is loading', () => {
+  it("shows loading indicator when space is loading", () => {
     const loadingChatSpace = {
       ...testChatSpace,
       loading: true,
@@ -154,14 +154,16 @@ describe('ChatSpace Component', () => {
     );
 
     // ローディングインジケーターが表示されることを確認（CircularProgress）
-    const loadingIndicator = document.querySelector('.MuiCircularProgress-root');
+    const loadingIndicator = document.querySelector(
+      ".MuiCircularProgress-root"
+    );
     expect(loadingIndicator).toBeInTheDocument();
   });
 
-  it('shows error message when there is an error', () => {
+  it("shows error message when there is an error", () => {
     const errorChatSpace = {
       ...testChatSpace,
-      error: 'Something went wrong',
+      error: "Something went wrong",
     };
 
     render(
@@ -181,7 +183,7 @@ describe('ChatSpace Component', () => {
   });
 
   // 新しいテスト: サイズ変更メニューをテスト
-  it('opens size menu when options button is clicked', () => {
+  it("opens size menu when options button is clicked", () => {
     render(
       <ChatSpace
         space={testChatSpace}
@@ -195,13 +197,13 @@ describe('ChatSpace Component', () => {
     );
 
     // オプションボタンを探してクリック
-    const optionsButton = screen.getByLabelText('オプション');
+    const optionsButton = screen.getByLabelText("オプション");
     fireEvent.click(optionsButton);
 
     // メニューが表示されることを確認
-    expect(screen.getByText('小サイズ')).toBeInTheDocument();
-    expect(screen.getByText('中サイズ')).toBeInTheDocument();
-    expect(screen.getByText('大サイズ')).toBeInTheDocument();
-    expect(screen.getByText('履歴をコピー')).toBeInTheDocument();
+    expect(screen.getByText("小サイズ")).toBeInTheDocument();
+    expect(screen.getByText("中サイズ")).toBeInTheDocument();
+    expect(screen.getByText("大サイズ")).toBeInTheDocument();
+    expect(screen.getByText("履歴をコピー")).toBeInTheDocument();
   });
 });

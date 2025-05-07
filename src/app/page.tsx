@@ -98,7 +98,9 @@ const Home = () => {
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
   const [exportedContent, setExportedContent] = useState("");
-  const [exportFilename, setExportFilename] = useState(`chat_export_${new Date().toISOString().split('T')[0]}.md`);
+  const [exportFilename, setExportFilename] = useState(
+    `chat_export_${new Date().toISOString().split("T")[0]}.md`
+  );
 
   // 初期のモデル一覧を読み込み
   useEffect(() => {
@@ -159,9 +161,9 @@ const Home = () => {
 
   // ファイルとしてダウンロード
   const handleDownloadExport = () => {
-    const blob = new Blob([exportedContent], { type: 'text/markdown' });
+    const blob = new Blob([exportedContent], { type: "text/markdown" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
     a.download = exportFilename;
     document.body.appendChild(a);
@@ -177,7 +179,9 @@ const Home = () => {
   const handleCopyExport = async () => {
     try {
       await navigator.clipboard.writeText(exportedContent);
-      setSnackbarMessage("すべてのチャット履歴をクリップボードにコピーしました");
+      setSnackbarMessage(
+        "すべてのチャット履歴をクリップボードにコピーしました"
+      );
       setSnackbarOpen(true);
       setExportDialogOpen(false);
     } catch {
@@ -216,7 +220,10 @@ const Home = () => {
               open={Boolean(menuAnchorEl)}
               onClose={handleMenuClose}
             >
-              <MenuItem onClick={handleExportAllHistory} disabled={chatSpaces.every(s => s.messages.length === 0)}>
+              <MenuItem
+                onClick={handleExportAllHistory}
+                disabled={chatSpaces.every((s) => s.messages.length === 0)}
+              >
                 <FileDownloadIcon fontSize="small" sx={{ mr: 1 }} />
                 すべての履歴をエクスポート
               </MenuItem>

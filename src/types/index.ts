@@ -23,7 +23,7 @@ export type ChatSpace = {
   size: SpaceSize; // 表示サイズの設定を追加
 };
 
-export type LLMProvider = 'openrouter';
+export type LLMProvider = "openrouter";
 
 export type LLMResponse = {
   content: string;

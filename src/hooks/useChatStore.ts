@@ -1,5 +1,5 @@
-import { useState, useCallback, useEffect } from 'react';
-import { v4 as uuidv4 } from 'uuid';
+import { useState, useCallback, useEffect } from "react";
+import { v4 as uuidv4 } from "uuid";
 import {
   ChatSpace,
   ChatMessage,
@@ -7,43 +7,73 @@ import {
   LLMResponse,
   LLMError,
   SpaceSize,
-} from '../types';
+} from "../types";
 // LLMサービスのモック関数
 const fetchModels = async (): Promise<OpenRouterModel[]> => {
   // 実際の実装ではOpenRouterのAPIを呼び出す
   return [
-    { id: 'anthropic/claude-3-opus', name: 'Claude 3 Opus', description: 'Most powerful Claude model', context_length: 200000 },
-    { id: 'anthropic/claude-3-sonnet', name: 'Claude 3 Sonnet', description: 'Balanced Claude model', context_length: 180000 },
-    { id: 'anthropic/claude-3-haiku', name: 'Claude 3 Haiku', description: 'Fast and efficient Claude model', context_length: 150000},
-    { id: 'meta-llama/llama-3-70b-instruct', name: 'Llama 3 70B', description: 'Open source large language model', context_length: 100000 },
-    { id: 'google/gemini-pro', name: 'Gemini Pro', description: 'Google\'s advanced AI model', context_length: 120000 },
+    {
+      id: "anthropic/claude-3-opus",
+      name: "Claude 3 Opus",
+      description: "Most powerful Claude model",
+      context_length: 200000,
+    },
+    {
+      id: "anthropic/claude-3-sonnet",
+      name: "Claude 3 Sonnet",
+      description: "Balanced Claude model",
+      context_length: 180000,
+    },
+    {
+      id: "anthropic/claude-3-haiku",
+      name: "Claude 3 Haiku",
+      description: "Fast and efficient Claude model",
+      context_length: 150000,
+    },
+    {
+      id: "meta-llama/llama-3-70b-instruct",
+      name: "Llama 3 70B",
+      description: "Open source large language model",
+      context_length: 100000,
+    },
+    {
+      id: "google/gemini-pro",
+      name: "Gemini Pro",
+      description: "Google's advanced AI model",
+      context_length: 120000,
+    },
   ];
 };
 
 const sendPromptToModels = async (
-  content: string, 
+  content: string,
   modelIds: string[]
 ): Promise<(LLMResponse | LLMError)[]> => {
   // 実際の実装ではOpenRouterのAPIを呼び出す
-  return Promise.all(modelIds.map(async (modelId) => {
-    // モック応答 (実際の実装では実APIを呼び出す)
-    try {
-      // 成功シミュレーション (90% の確率)
-      if (Math.random() > 0.1) {
+  return Promise.all(
+    modelIds.map(async (modelId) => {
+      // モック応答 (実際の実装では実APIを呼び出す)
+      try {
+        // 成功シミュレーション (90% の確率)
+        if (Math.random() > 0.1) {
+          return {
+            content: `これは ${modelId} からの応答です。あなたの質問: "${content}"`,
+            model: modelId,
+          } as LLMResponse;
+        } else {
+          // エラーシミュレーション (10% の確率)
+          throw new Error(`APIエラーが発生しました`);
+        }
+      } catch (error) {
         return {
-          content: `これは ${modelId} からの応答です。あなたの質問: "${content}"`,
-          model: modelId,
-        } as LLMResponse;
-      } else {
-        // エラーシミュレーション (10% の確率)
-        throw new Error(`APIエラーが発生しました`);
+          message:
+            error instanceof Error
+              ? error.message
+              : "不明なエラーが発生しました",
+        } as LLMError;
       }
-    } catch (error) {
-      return {
-        message: error instanceof Error ? error.message : '不明なエラーが発生しました',
-      } as LLMError;
-    }
-  }));
+    })
+  );
 };
 
 // useChatStoreのフック（型を明示的に宣言）
@@ -62,7 +92,7 @@ export const useChatStore = () => {
       const models = await fetchModels();
       setAvailableModels(models);
     } catch (error) {
-      console.error('モデルのロードに失敗:', error);
+      console.error("モデルのロードに失敗:", error);
     } finally {
       setLoading(false);
     }
@@ -81,7 +111,7 @@ export const useChatStore = () => {
       loading: false,
       error: null,
       selectedModel: availableModels[0].id,
-      size: 'medium', // デフォルトサイズを追加
+      size: "medium", // デフォルトサイズを追加
     };
 
     setChatSpaces((prev) => [...prev, newSpace]);
@@ -151,7 +181,7 @@ export const useChatStore = () => {
       const userMessage: ChatMessage = {
         id: uuidv4(),
         content,
-        role: 'user',
+        role: "user",
         timestamp,
       };
 
@@ -186,11 +216,11 @@ export const useChatStore = () => {
               return {
                 ...space,
                 loading: false,
-                error: '応答が受信できませんでした。',
+                error: "応答が受信できませんでした。",
               };
             }
 
-            if ('message' in response) {
+            if ("message" in response) {
               // エラーの場合
               const error = response as LLMError;
               return {
@@ -204,7 +234,7 @@ export const useChatStore = () => {
               const assistantMessage: ChatMessage = {
                 id: uuidv4(),
                 content: success.content,
-                role: 'assistant',
+                role: "assistant",
                 timestamp: Date.now(),
                 model: success.model,
               };
@@ -220,12 +250,12 @@ export const useChatStore = () => {
         );
       } catch (error) {
         // 全体的なエラー処理
-        console.error('メッセージの送信に失敗:', error);
+        console.error("メッセージの送信に失敗:", error);
         setChatSpaces((prev) =>
           prev.map((space) => ({
             ...space,
             loading: false,
-            error: '応答の処理中にエラーが発生しました。',
+            error: "応答の処理中にエラーが発生しました。",
           }))
         );
       }
@@ -234,44 +264,63 @@ export const useChatStore = () => {
   );
 
   // チャット履歴を特定のスペースからコピーする
-  const copySpaceHistory = useCallback(async (id: string) => {
-    const space = chatSpaces.find(space => space.id === id);
-    if (!space || space.messages.length === 0) return;
+  const copySpaceHistory = useCallback(
+    async (id: string) => {
+      const space = chatSpaces.find((space) => space.id === id);
+      if (!space || space.messages.length === 0) return;
 
-    // マークダウン形式でメッセージを整形
-    const formattedMessages = space.messages.map(msg => {
-      const roleLabel = msg.role === 'user' ? '**User**' : `**Assistant${msg.model ? ` (${msg.model})` : ''}**`;
-      const timestamp = new Date(msg.timestamp).toLocaleString();
-      return `${roleLabel} - ${timestamp}\n\n${msg.content}\n\n---\n`;
-    }).join('\n');
+      // マークダウン形式でメッセージを整形
+      const formattedMessages = space.messages
+        .map((msg) => {
+          const roleLabel =
+            msg.role === "user"
+              ? "**User**"
+              : `**Assistant${msg.model ? ` (${msg.model})` : ""}**`;
+          const timestamp = new Date(msg.timestamp).toLocaleString();
+          return `${roleLabel} - ${timestamp}\n\n${msg.content}\n\n---\n`;
+        })
+        .join("\n");
 
-    try {
-      await navigator.clipboard.writeText(formattedMessages);
-      return true;
-    } catch (err) {
-      console.error('クリップボードへのコピーに失敗:', err);
-      return false;
-    }
-  }, [chatSpaces]);
+      try {
+        await navigator.clipboard.writeText(formattedMessages);
+        return true;
+      } catch (err) {
+        console.error("クリップボードへのコピーに失敗:", err);
+        return false;
+      }
+    },
+    [chatSpaces]
+  );
 
   // すべてのチャット履歴をエクスポートする
   const exportAllHistory = useCallback(() => {
-    const spacesWithMessages = chatSpaces.filter(space => space.messages.length > 0);
+    const spacesWithMessages = chatSpaces.filter(
+      (space) => space.messages.length > 0
+    );
     if (spacesWithMessages.length === 0) return null;
 
     // すべてのチャットスペースのメッセージをマークダウン形式で整形
-    const formattedHistory = spacesWithMessages.map((space, index) => {
-      const model = availableModels.find(m => m.id === space.selectedModel);
-      const title = model ? `# チャット ${index + 1} - ${model.name}\n\n` : `# チャット ${index + 1}\n\n`;
-      
-      const messages = space.messages.map(msg => {
-        const roleLabel = msg.role === 'user' ? '**User**' : `**Assistant${msg.model ? ` (${msg.model})` : ''}**`;
-        const timestamp = new Date(msg.timestamp).toLocaleString();
-        return `${roleLabel} - ${timestamp}\n\n${msg.content}\n\n---\n`;
-      }).join('\n');
+    const formattedHistory = spacesWithMessages
+      .map((space, index) => {
+        const model = availableModels.find((m) => m.id === space.selectedModel);
+        const title = model
+          ? `# チャット ${index + 1} - ${model.name}\n\n`
+          : `# チャット ${index + 1}\n\n`;
 
-      return `${title}${messages}\n\n`;
-    }).join('\n');
+        const messages = space.messages
+          .map((msg) => {
+            const roleLabel =
+              msg.role === "user"
+                ? "**User**"
+                : `**Assistant${msg.model ? ` (${msg.model})` : ""}**`;
+            const timestamp = new Date(msg.timestamp).toLocaleString();
+            return `${roleLabel} - ${timestamp}\n\n${msg.content}\n\n---\n`;
+          })
+          .join("\n");
+
+        return `${title}${messages}\n\n`;
+      })
+      .join("\n");
 
     return formattedHistory;
   }, [chatSpaces, availableModels]);
