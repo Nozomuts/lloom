@@ -1,12 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
-import {
-  ChatSpace,
-  ChatMessage,
-  OpenRouterModel,
-  LLMResponse,
-  LLMError,
-} from "../types";
+import { ChatSpace, ChatMessage, OpenRouterModel, LLMResponse } from "../types";
 import {
   fetchAvailableModels,
   fetchOpenRouterLLMResponse,
@@ -31,27 +25,16 @@ const fetchModels = async (): Promise<OpenRouterModel[]> => {
 
 const sendPromptToModels = async (
   content: string,
-  requests: Array<{ modelId: string; systemPrompt?: string }> // 変更: systemPrompt を追加
-): Promise<(LLMResponse | LLMError)[]> => {
-  return Promise.all(
-    requests.map(async (request) => { // 変更: request オブジェクトを使用
-      try {
-        const response = await fetchOpenRouterLLMResponse(
-          content,
-          request.modelId,
-          request.systemPrompt // 追加: systemPrompt を渡す
-        );
-        return response;
-      } catch (error) {
-        return {
-          message:
-            error instanceof Error
-              ? error.message
-              : "不明なエラーが発生しました",
-        } as LLMError;
-      }
-    })
-  );
+  requests: Array<{ modelId: string; systemPrompt?: string }>
+): Promise<PromiseSettledResult<LLMResponse>[]> => {
+  const promises = requests.map(async (request) => {
+    return fetchOpenRouterLLMResponse(
+      content,
+      request.modelId,
+      request.systemPrompt
+    );
+  });
+  return Promise.allSettled(promises);
 };
 
 // useChatStoreのフック（型を明示的に宣言）
@@ -148,7 +131,8 @@ export const useChatStore = () => {
 
   // メッセージを送信する
   const sendMessage = useCallback(
-    async (content: string, globalSystemPrompt?: string) => { // globalSystemPrompt を追加
+    async (content: string, globalSystemPrompt?: string) => {
+      // globalSystemPrompt を追加
       // 空のプロンプトを送信しない
       if (!content.trim()) return;
 
@@ -187,7 +171,7 @@ export const useChatStore = () => {
 
       try {
         // すべてのモデルにプロンプトを送信
-        const responses = await sendPromptToModels(
+        const results = await sendPromptToModels(
           content,
           modelRequests.map((req) => ({
             modelId: req.modelId,
@@ -198,26 +182,11 @@ export const useChatStore = () => {
         // レスポンスに基づいてそれぞれのチャットスペースを更新
         setChatSpaces((prev) =>
           prev.map((space, index) => {
-            const response = responses[index];
-            if (!response) {
-              return {
-                ...space,
-                loading: false,
-                error: "応答が受信できませんでした。",
-              };
-            }
+            const result = results[index];
 
-            if ("message" in response) {
-              // エラーの場合
-              const error = response as LLMError;
-              return {
-                ...space,
-                loading: false,
-                error: error.message,
-              };
-            } else {
+            if (result.status === "fulfilled") {
               // 成功の場合
-              const success = response as LLMResponse;
+              const success = result.value;
               const assistantMessage: ChatMessage = {
                 id: uuidv4(),
                 content: success.content,
@@ -232,17 +201,29 @@ export const useChatStore = () => {
                 loading: false,
                 error: null,
               };
+            } else {
+              // 失敗の場合 (status === "rejected")
+              const errorReason = result.reason;
+              const errorMessage =
+                errorReason instanceof Error
+                  ? errorReason.message
+                  : "不明なエラーが発生しました";
+              return {
+                ...space,
+                loading: false,
+                error: errorMessage,
+              };
             }
           })
         );
       } catch (error) {
-        // 全体的なエラー処理
-        console.error("メッセージの送信に失敗:", error);
+        // sendPromptToModels自体が予期せぬエラーをスローした場合など（通常は発生しにくい）
+        console.error("メッセージの送信プロセス全体でエラー:", error);
         setChatSpaces((prev) =>
           prev.map((space) => ({
             ...space,
             loading: false,
-            error: "応答の処理中にエラーが発生しました。",
+            error: "応答の処理中に予期せぬエラーが発生しました。",
           }))
         );
       }
@@ -252,7 +233,8 @@ export const useChatStore = () => {
 
   // 特定のチャットスペースにメッセージを送信する
   const sendMessageToSpace = useCallback(
-    async (spaceId: string, content: string, globalSystemPrompt?: string) => { // globalSystemPrompt を追加
+    async (spaceId: string, content: string, globalSystemPrompt?: string) => {
+      // globalSystemPrompt を追加
       if (!content.trim()) return;
 
       const timestamp = Date.now();
@@ -290,45 +272,38 @@ export const useChatStore = () => {
           finalSystemPrompt // finalSystemPrompt を使用
         );
 
+        const success = response as LLMResponse;
+        const assistantMessage: ChatMessage = {
+          id: uuidv4(),
+          content: success.content,
+          role: "assistant",
+          timestamp: Date.now(),
+          model: success.model,
+        };
         setChatSpaces((prev) =>
           prev.map((space) => {
             if (space.id === spaceId) {
-              if ("message" in response) {
-                const error = response as LLMError;
-                return {
-                  ...space,
-                  loading: false,
-                  error: error.message,
-                };
-              } else {
-                const success = response as LLMResponse;
-                const assistantMessage: ChatMessage = {
-                  id: uuidv4(),
-                  content: success.content,
-                  role: "assistant",
-                  timestamp: Date.now(),
-                  model: success.model,
-                };
-                return {
-                  ...space,
-                  messages: [...space.messages, assistantMessage],
-                  loading: false,
-                  error: null,
-                };
-              }
+              return {
+                ...space,
+                messages: [...space.messages, assistantMessage],
+                loading: false,
+                error: null,
+              };
             }
             return space;
           })
         );
       } catch (error) {
         console.error("メッセージの送信に失敗:", error);
+        const errorMessage =
+          error instanceof Error ? error.message : "不明なエラーが発生しました";
         setChatSpaces((prev) =>
           prev.map((space) =>
             space.id === spaceId
               ? {
                   ...space,
                   loading: false,
-                  error: "応答の処理中にエラーが発生しました。",
+                  error: errorMessage,
                 }
               : space
           )
