@@ -12,6 +12,8 @@ import {
   SelectChangeEvent,
   Menu,
   Tooltip,
+  Fade,
+  Skeleton,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import ClearAllIcon from "@mui/icons-material/ClearAll";
@@ -99,6 +101,18 @@ const MessageBubble = memo(({ message }: MessageBubbleProps) => {
 
 MessageBubble.displayName = "MessageBubble";
 
+// ローディングスケルトン用のコンポーネント
+const LoadingSkeleton = () => (
+  <Box sx={{ mb: 2, width: "100%" }}>
+    <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+      <Skeleton variant="circular" width={20} height={20} sx={{ mr: 1 }} />
+      <Skeleton variant="text" width={100} height={24} />
+    </Box>
+    <Skeleton variant="rounded" height={80} width="90%" sx={{ mb: 1 }} />
+    <Skeleton variant="text" width={60} height={16} />
+  </Box>
+);
+
 const ChatSpace = memo(
   ({
     space,
@@ -182,8 +196,37 @@ const ChatSpace = memo(
           flexDirection: "column",
           border: "1px solid #e0e0e0",
           backgroundColor: "white",
+          transition: "all 0.3s ease",
+          opacity: space.loading ? 0.95 : 1,
         }}
       >
+        {space.loading && (
+          <Box
+            sx={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: "rgba(255, 255, 255, 0.7)",
+              zIndex: 10,
+              borderRadius: 2,
+            }}
+          >
+            <Box sx={{ textAlign: "center" }}>
+              <CircularProgress size={40} thickness={4} color="primary" />
+              <Typography
+                variant="body2"
+                sx={{ mt: 1, color: "text.secondary" }}
+              >
+                応答を生成中...
+              </Typography>
+            </Box>
+          </Box>
+        )}
         <Box
           sx={{
             display: "flex",
@@ -305,9 +348,25 @@ const ChatSpace = memo(
           )}
 
           {space.loading && (
-            <Box sx={{ display: "flex", justifyContent: "center", my: 2 }}>
-              <CircularProgress size={24} sx={{ color: "#555555" }} />
-            </Box>
+            <Fade in={space.loading} timeout={300}>
+              <Box sx={{ my: 2 }}>
+                <LoadingSkeleton />
+                <Box sx={{ display: "flex", justifyContent: "center", mt: 1 }}>
+                  <CircularProgress
+                    size={24}
+                    sx={{
+                      color: "#555555",
+                      animation: "pulse 1.5s ease-in-out infinite",
+                      "@keyframes pulse": {
+                        "0%": { opacity: 0.6 },
+                        "50%": { opacity: 1 },
+                        "100%": { opacity: 0.6 },
+                      },
+                    }}
+                  />
+                </Box>
+              </Box>
+            </Fade>
           )}
 
           {space.error && (
