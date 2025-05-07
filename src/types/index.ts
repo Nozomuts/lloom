@@ -17,6 +17,7 @@ export type SpaceSize = {
 // アプリケーション全体の設定
 export type AppSettings = {
   spaceSize: SpaceSize;
+  globalSystemPrompt?: string; // 追加
 };
 
 export type ChatSpace = {

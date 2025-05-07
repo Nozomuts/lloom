@@ -45,7 +45,6 @@ export const useAppSettings = () => {
     }
   }, [settings, initialized]);
 
-  // サイズ設定を更新
   const updateSpaceSize = useCallback((newSize: SpaceSize) => {
     setSettings((prev) => ({
       ...prev,

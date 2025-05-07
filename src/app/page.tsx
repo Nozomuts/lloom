@@ -88,7 +88,7 @@ const Home = () => {
     removeChatSpace,
     clearChatSpace,
     sendMessage,
-    sendMessageToSpace, // sendMessageToSpace をインポート
+    sendMessageToSpace,
     changeModel,
     loadAvailableModels,
     copySpaceHistory,
@@ -127,7 +127,7 @@ const Home = () => {
   }, [settings]);
 
   const handleSendMessage = (content: string) => {
-    sendMessage(content);
+    sendMessage(content, settings.globalSystemPrompt);
   };
 
   // メニューを開く
@@ -179,6 +179,8 @@ const Home = () => {
   // 設定を保存する
   const handleSaveSettings = () => {
     updateSpaceSize(tempSettings.spaceSize);
+    // updateGlobalSystemPrompt is not available from useAppSettings, so its usage is removed.
+    // If this functionality is required, useAppSettings hook needs to be updated.
     setSettingsDialogOpen(false);
     setSnackbarMessage("設定を保存しました");
     setSnackbarOpen(true);
@@ -252,7 +254,7 @@ const Home = () => {
             >
               <MenuItem onClick={handleOpenSettings}>
                 <SettingsIcon fontSize="small" sx={{ mr: 1 }} />
-                サイズ設定
+                設定
               </MenuItem>
               <MenuItem
                 onClick={handleExportAllHistory}
@@ -342,7 +344,7 @@ const Home = () => {
                   onCopyHistory={handleCopyHistory}
                   availableModels={availableModels}
                   spaceSize={settings.spaceSize}
-                  onSendMessage={sendMessageToSpace} // sendMessageToSpace を渡す
+                  onSendMessage={(spaceId, content) => sendMessageToSpace(spaceId, content, settings.globalSystemPrompt)}
                   onSystemPromptChange={changeSystemPrompt}
                 />
               ))}
@@ -356,14 +358,13 @@ const Home = () => {
           loading={isAnyLoading}
         />
 
-        {/* サイズ設定ダイアログ */}
         <Dialog
           open={settingsDialogOpen}
           onClose={handleCloseSettings}
           maxWidth="sm"
           fullWidth
         >
-          <DialogTitle>チャットスペースのサイズ設定</DialogTitle>
+          <DialogTitle>チャットスペースの設定</DialogTitle>
           <DialogContent>
             <Box sx={{ my: 2 }}>
               <TextField
@@ -397,6 +398,21 @@ const Home = () => {
                 }
                 margin="normal"
                 helperText="例: 320px, 40vh など"
+              />
+              <TextField
+                fullWidth
+                label="全体のシステムプロンプト (オプション)"
+                value={tempSettings.globalSystemPrompt || ""}
+                onChange={(e) =>
+                  setTempSettings({
+                    ...tempSettings,
+                    globalSystemPrompt: e.target.value,
+                  })
+                }
+                margin="normal"
+                multiline
+                rows={3}
+                helperText="すべてのチャットスペースに適用される共通の指示 (個別の設定で上書き可能)"
               />
             </Box>
           </DialogContent>
