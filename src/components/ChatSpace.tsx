@@ -1,4 +1,4 @@
-import React, { memo } from "react";
+import React, { memo, useState, KeyboardEvent } from "react";
 import {
   Paper,
   Typography,
@@ -14,11 +14,14 @@ import {
   Tooltip,
   Fade,
   Skeleton,
+  TextField,
+  InputAdornment,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import ClearAllIcon from "@mui/icons-material/ClearAll";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import SendIcon from "@mui/icons-material/Send";
 import {
   ChatSpace as ChatSpaceType,
   ChatMessage,
@@ -35,6 +38,7 @@ type ChatSpaceProps = {
   onCopyHistory: (id: string) => Promise<void>;
   availableModels: OpenRouterModel[];
   spaceSize: SpaceSize;
+  onSendMessage: (spaceId: string, content: string) => void;
 };
 
 type MessageBubbleProps = {
@@ -121,11 +125,13 @@ const ChatSpace = memo(
     onCopyHistory,
     availableModels,
     spaceSize,
+    onSendMessage,
   }: ChatSpaceProps) => {
     const [menuAnchorEl, setMenuAnchorEl] = React.useState<null | HTMLElement>(
       null
     );
     const isMenuOpen = Boolean(menuAnchorEl);
+    const [localInput, setLocalInput] = useState(""); // ローカル入力用のstate
 
     // メニューを開く
     const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
@@ -146,6 +152,22 @@ const ChatSpace = memo(
     const handleCopyHistory = () => {
       onCopyHistory(space.id);
       handleMenuClose();
+    };
+
+    // ローカルメッセージ送信ハンドラー
+    const handleLocalSendMessage = () => {
+      if (localInput.trim() && !space.loading) {
+        onSendMessage(space.id, localInput.trim());
+        setLocalInput("");
+      }
+    };
+
+    // ローカル入力のKeyDownハンドラー
+    const handleLocalInputKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        handleLocalSendMessage();
+      }
     };
 
     return (
@@ -340,6 +362,48 @@ const ChatSpace = memo(
               Error: {space.error}
             </Typography>
           )}
+        </Box>
+        {/* 個別メッセージ入力UI */}
+        <Box sx={{ mt: 1.5, display: "flex", alignItems: "center" }}>
+          <TextField
+            fullWidth
+            variant="outlined"
+            size="small"
+            placeholder="メッセージを入力..."
+            value={localInput}
+            onChange={(e) => setLocalInput(e.target.value)}
+            onKeyDown={handleLocalInputKeyDown}
+            disabled={space.loading}
+            sx={{
+              mr: 1,
+              "& .MuiOutlinedInput-root": {
+                borderRadius: "20px", // 丸みを帯びた角
+                backgroundColor: "#f9f9f9",
+                "&.Mui-focused fieldset": {
+                  borderColor: "#555555",
+                },
+              },
+            }}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    onClick={handleLocalSendMessage}
+                    disabled={!localInput.trim() || space.loading}
+                    size="small"
+                    sx={{
+                      color:
+                        localInput.trim() && !space.loading
+                          ? "#333333"
+                          : "#bdbdbd",
+                    }}
+                  >
+                    <SendIcon fontSize="small" />
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
+          />
         </Box>
       </Paper>
     );

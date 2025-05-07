@@ -6,59 +6,34 @@ import {
   Box,
   CircularProgress,
   Tooltip,
-  Collapse,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  SelectChangeEvent,
 } from "@mui/material";
 import SendIcon from "@mui/icons-material/Send";
-import ChatIcon from "@mui/icons-material/Chat";
-import { ChatSpace } from "../types";
 
 type InputBarProps = {
-  onSubmit: (content: string, targetSpaceId?: string) => void;
+  onSubmit: (content: string) => void;
   disabled?: boolean;
   loading?: boolean;
-  chatSpaces: ChatSpace[];
-  selectedChatId?: string;
-  onSelectChat?: (chatId: string | null) => void;
 };
 
 const InputBar = ({
   onSubmit,
   disabled = false,
   loading = false,
-  chatSpaces,
-  selectedChatId,
-  onSelectChat,
 }: InputBarProps) => {
   const [input, setInput] = useState("");
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [selectedSpace, setSelectedSpace] = useState<string | null>(
-    selectedChatId || null
-  );
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (inputRef.current && isExpanded) {
+    if (inputRef.current) {
       inputRef.current.focus();
     }
-  }, [isExpanded]);
+  }, []);
 
   const handleSubmit = () => {
     const trimmedInput = input.trim();
     if (trimmedInput && !disabled) {
-      // 個別チャットが選択されている場合は、そのチャットにのみ送信
-      onSubmit(trimmedInput, selectedSpace || undefined);
+      onSubmit(trimmedInput);
       setInput("");
-      if (selectedSpace) {
-        // 個別チャット送信後は選択状態を解除
-        setSelectedSpace(null);
-        if (onSelectChat) onSelectChat(null);
-        setIsExpanded(false);
-      }
     }
   };
 
@@ -66,20 +41,6 @@ const InputBar = ({
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSubmit();
-    }
-  };
-
-  const handleSpaceSelect = (event: SelectChangeEvent) => {
-    const spaceId = event.target.value;
-    setSelectedSpace(spaceId === "all" ? null : spaceId);
-    if (onSelectChat) onSelectChat(spaceId === "all" ? null : spaceId);
-  };
-
-  const toggleExpanded = () => {
-    setIsExpanded(!isExpanded);
-    if (!isExpanded && onSelectChat) {
-      onSelectChat(null);
-      setSelectedSpace(null);
     }
   };
 
@@ -121,42 +82,6 @@ const InputBar = ({
           handleSubmit();
         }}
       >
-        {/* 個別チャット選択ボタン */}
-        <Tooltip title={isExpanded ? "全体送信に戻す" : "個別チャットを選択"}>
-          <IconButton
-            onClick={toggleExpanded}
-            sx={{
-              color: isExpanded ? "#1976d2" : "#666666",
-              "&:hover": { color: isExpanded ? "#1565c0" : "#333333" },
-            }}
-          >
-            <ChatIcon />
-          </IconButton>
-        </Tooltip>
-
-        {/* チャット選択ドロップダウン */}
-        <Collapse in={isExpanded} sx={{ mr: 1, minWidth: 120 }}>
-          <FormControl size="small" fullWidth>
-            <InputLabel id="chat-select-label">送信先</InputLabel>
-            <Select
-              labelId="chat-select-label"
-              value={selectedSpace || "all"}
-              label="送信先"
-              onChange={handleSpaceSelect}
-              sx={{ minWidth: 120 }}
-            >
-              <MenuItem value="all">全てのチャット</MenuItem>
-              {chatSpaces.map((space) => (
-                <MenuItem key={space.id} value={space.id}>
-                  {space.messages.length > 0
-                    ? `${space.messages[0].content.substring(0, 15)}...`
-                    : `チャット ${space.id.substring(0, 4)}`}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Collapse>
-
         <InputBase
           inputRef={inputRef}
           sx={{
@@ -171,9 +96,7 @@ const InputBar = ({
           placeholder={
             loading
               ? "応答を待っています..."
-              : selectedSpace
-              ? "個別メッセージを入力..."
-              : "メッセージを入力..."
+              : "すべてのチャットへメッセージを入力..."
           }
           value={input}
           onChange={(e) => setInput(e.target.value)}

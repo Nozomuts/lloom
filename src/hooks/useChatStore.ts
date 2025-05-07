@@ -221,6 +221,89 @@ export const useChatStore = () => {
     [chatSpaces]
   );
 
+  // 特定のチャットスペースにメッセージを送信する
+  const sendMessageToSpace = useCallback(
+    async (spaceId: string, content: string) => {
+      if (!content.trim()) return;
+
+      const timestamp = Date.now();
+      const userMessage: ChatMessage = {
+        id: uuidv4(),
+        content,
+        role: "user",
+        timestamp,
+      };
+
+      const targetSpace = chatSpaces.find((space) => space.id === spaceId);
+      if (!targetSpace) return;
+
+      setChatSpaces((prev) =>
+        prev.map((space) =>
+          space.id === spaceId
+            ? {
+                ...space,
+                messages: [...space.messages, userMessage],
+                loading: true,
+                error: null,
+              }
+            : space
+        )
+      );
+
+      try {
+        const response = await fetchOpenRouterLLMResponse(
+          content,
+          targetSpace.selectedModel
+        );
+
+        setChatSpaces((prev) =>
+          prev.map((space) => {
+            if (space.id === spaceId) {
+              if ("message" in response) {
+                const error = response as LLMError;
+                return {
+                  ...space,
+                  loading: false,
+                  error: error.message,
+                };
+              } else {
+                const success = response as LLMResponse;
+                const assistantMessage: ChatMessage = {
+                  id: uuidv4(),
+                  content: success.content,
+                  role: "assistant",
+                  timestamp: Date.now(),
+                  model: success.model,
+                };
+                return {
+                  ...space,
+                  messages: [...space.messages, assistantMessage],
+                  loading: false,
+                  error: null,
+                };
+              }
+            }
+            return space;
+          })
+        );
+      } catch (error) {
+        console.error("メッセージの送信に失敗:", error);
+        setChatSpaces((prev) =>
+          prev.map((space) =>
+            space.id === spaceId
+              ? {
+                  ...space,
+                  loading: false,
+                  error: "応答の処理中にエラーが発生しました。",
+                }
+              : space
+          )
+        );
+      }
+    },
+    [chatSpaces]
+  );
+
   // チャット履歴を特定のスペースからコピーする
   const copySpaceHistory = useCallback(
     async (id: string) => {
@@ -297,6 +380,7 @@ export const useChatStore = () => {
     removeChatSpace,
     clearChatSpace,
     sendMessage,
+    sendMessageToSpace, // 追加
     changeModel,
     loadAvailableModels,
     copySpaceHistory,

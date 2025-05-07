@@ -88,6 +88,7 @@ const Home = () => {
     removeChatSpace,
     clearChatSpace,
     sendMessage,
+    sendMessageToSpace, // sendMessageToSpace をインポート
     changeModel,
     loadAvailableModels,
     copySpaceHistory,
@@ -106,7 +107,6 @@ const Home = () => {
   );
   const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
   const [tempSettings, setTempSettings] = useState(settings);
-  const [selectedChatId, setSelectedChatId] = useState<string>();
 
   // 初期のモデル一覧を読み込み
   useEffect(() => {
@@ -125,20 +125,8 @@ const Home = () => {
     setTempSettings(settings);
   }, [settings]);
 
-  const handleSendMessage = (content: string, targetSpaceId?: string) => {
-    if (targetSpaceId) {
-      // 個別のチャットスペースにのみメッセージを送信
-      const space = chatSpaces.find((space) => space.id === targetSpaceId);
-      if (space) {
-        // ここで個別チャットに対する送信を実装
-        // カスタム実装が必要な場合は、useChatStore内に新しい関数を追加する
-        // 現時点ではシンプルにメッセージ送信を使用
-        sendMessage(content);
-      }
-    } else {
-      // すべてのチャットスペースに同じプロンプトを送信（既存の動作）
-      sendMessage(content);
-    }
+  const handleSendMessage = (content: string) => {
+    sendMessage(content);
   };
 
   // メニューを開く
@@ -229,15 +217,6 @@ const Home = () => {
       setSnackbarMessage("クリップボードへのコピーに失敗しました");
       setSnackbarOpen(true);
     }
-  };
-
-  // 選択されたチャットを変更する
-  const handleSelectChat = (chatId: string | null) => {
-    if (chatId === null) {
-      setSelectedChatId(undefined);
-      return;
-    }
-    setSelectedChatId(chatId);
   };
 
   const isAnyLoading = chatSpaces.some((space) => space.loading) || loading;
@@ -362,6 +341,7 @@ const Home = () => {
                   onCopyHistory={handleCopyHistory}
                   availableModels={availableModels}
                   spaceSize={settings.spaceSize}
+                  onSendMessage={sendMessageToSpace} // sendMessageToSpace を渡す
                 />
               ))}
             </Box>
@@ -372,9 +352,6 @@ const Home = () => {
           onSubmit={handleSendMessage}
           disabled={isAnyLoading || chatSpaces.length === 0}
           loading={isAnyLoading}
-          chatSpaces={chatSpaces}
-          selectedChatId={selectedChatId}
-          onSelectChat={handleSelectChat}
         />
 
         {/* サイズ設定ダイアログ */}
