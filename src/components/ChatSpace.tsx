@@ -249,7 +249,7 @@ const ChatSpace = memo(
               value={space.selectedModel}
               label="モデル"
               onChange={handleModelChange}
-              disabled={space.loading || space.messages.length > 0}
+              disabled={space.loading}
               sx={{
                 "& .MuiOutlinedInput-notchedOutline": {
                   borderColor: "#d0d0d0",
@@ -318,7 +318,7 @@ const ChatSpace = memo(
           size="small"
           value={space.systemPrompt || ""}
           onChange={handleSystemPromptChange}
-          disabled={space.loading || space.messages.length > 0} // 会話開始後は編集不可にする場合
+          disabled={space.loading}
           multiline
           rows={2}
           sx={{
