@@ -48,13 +48,13 @@ const MessageBubble = memo(({ message }: MessageBubbleProps) => {
       <Box
         sx={{
           maxWidth: "90%",
-          backgroundColor: isUser ? "#1976d2" : "#f5f5f5",
-          color: isUser ? "white" : "black",
+          backgroundColor: isUser ? "#333333" : "#f5f5f5",
+          color: isUser ? "white" : "#333333",
           p: 2,
-          borderRadius: 2,
+          borderRadius: 1.5,
           boxShadow: 1,
           "& a": {
-            color: isUser ? "lightblue" : "#0066cc",
+            color: isUser ? "#e0e0e0" : "#555555",
             textDecoration: "underline",
           },
           "& pre": {
@@ -105,16 +105,19 @@ const ChatSpace = memo(
 
     return (
       <Paper
-        elevation={3}
+        elevation={2}
         sx={{
-          p: 2,
-          mb: 2,
+          p: 2.5,
+          mb: 3,
+          borderRadius: 2,
           maxWidth: "100%",
-          minWidth: { xs: "100%", sm: "350px" },
-          width: { xs: "100%", sm: "45%", md: "30%" },
+          minWidth: { xs: "100%", sm: "330px" },
+          width: { xs: "100%", sm: "47%", md: "30%", lg: "22%" },
           position: "relative",
           display: "flex",
           flexDirection: "column",
+          border: "1px solid #e0e0e0",
+          backgroundColor: "white",
         }}
       >
         <Box
@@ -135,6 +138,14 @@ const ChatSpace = memo(
               label="モデル"
               onChange={handleModelChange}
               disabled={space.loading || space.messages.length > 0}
+              sx={{
+                "& .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "#d0d0d0",
+                },
+                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "#555555",
+                },
+              }}
             >
               {availableModels.map((model) => (
                 <MenuItem key={model.id} value={model.id}>
@@ -149,6 +160,7 @@ const ChatSpace = memo(
               onClick={() => onClear(space.id)}
               title="会話をクリア"
               disabled={space.loading}
+              sx={{ color: "#666666", "&:hover": { color: "#333333" } }}
             >
               <ClearAllIcon />
             </IconButton>
@@ -157,6 +169,7 @@ const ChatSpace = memo(
               onClick={() => onRemove(space.id)}
               title="チャットスペースを削除"
               disabled={space.loading}
+              sx={{ color: "#666666", "&:hover": { color: "#333333" } }}
             >
               <DeleteIcon />
             </IconButton>
@@ -166,7 +179,7 @@ const ChatSpace = memo(
         <Box
           sx={{
             flexGrow: 1,
-            height: "300px",
+            height: "320px",
             overflowY: "auto",
             p: 1,
             display: "flex",
@@ -178,7 +191,7 @@ const ChatSpace = memo(
               sx={{
                 textAlign: "center",
                 my: 4,
-                opacity: 0.6,
+                opacity: 0.5,
                 flexGrow: 1,
                 display: "flex",
                 alignItems: "center",
@@ -195,12 +208,16 @@ const ChatSpace = memo(
 
           {space.loading && (
             <Box sx={{ display: "flex", justifyContent: "center", my: 2 }}>
-              <CircularProgress size={24} />
+              <CircularProgress size={24} sx={{ color: "#555555" }} />
             </Box>
           )}
 
           {space.error && (
-            <Typography color="error" variant="body2" sx={{ mt: 1 }}>
+            <Typography
+              color="error"
+              variant="body2"
+              sx={{ mt: 1, color: "#aa0000" }}
+            >
               Error: {space.error}
             </Typography>
           )}
