@@ -8,62 +8,35 @@ import {
   LLMError,
   SpaceSize,
 } from "../types";
-// LLMサービスのモック関数
+import { fetchAvailableModels, fetchOpenRouterLLMResponse } from "@/services/llmService";
+
 const fetchModels = async (): Promise<OpenRouterModel[]> => {
-  // 実際の実装ではOpenRouterのAPIを呼び出す
-  return [
-    {
-      id: "anthropic/claude-3-opus",
-      name: "Claude 3 Opus",
-      description: "Most powerful Claude model",
-      context_length: 200000,
-    },
-    {
-      id: "anthropic/claude-3-sonnet",
-      name: "Claude 3 Sonnet",
-      description: "Balanced Claude model",
-      context_length: 180000,
-    },
-    {
-      id: "anthropic/claude-3-haiku",
-      name: "Claude 3 Haiku",
-      description: "Fast and efficient Claude model",
-      context_length: 150000,
-    },
-    {
-      id: "meta-llama/llama-3-70b-instruct",
-      name: "Llama 3 70B",
-      description: "Open source large language model",
-      context_length: 100000,
-    },
-    {
-      id: "google/gemini-pro",
-      name: "Gemini Pro",
-      description: "Google's advanced AI model",
-      context_length: 120000,
-    },
-  ];
+  const models = await fetchAvailableModels();
+  const freeModels = models.filter(({ pricing }) => {
+    for (const key in pricing) {
+      if (key in pricing === false) {
+        return false;
+      }
+      if (Number(pricing[key as keyof typeof pricing]) !== 0) {
+        return false;
+      }
+    }
+    return true;
+  });
+  console.log("利用可能なモデル:", freeModels);
+
+  return freeModels;
 };
 
 const sendPromptToModels = async (
   content: string,
   modelIds: string[]
 ): Promise<(LLMResponse | LLMError)[]> => {
-  // 実際の実装ではOpenRouterのAPIを呼び出す
   return Promise.all(
     modelIds.map(async (modelId) => {
-      // モック応答 (実際の実装では実APIを呼び出す)
       try {
-        // 成功シミュレーション (90% の確率)
-        if (Math.random() > 0.1) {
-          return {
-            content: `これは ${modelId} からの応答です。あなたの質問: "${content}"`,
-            model: modelId,
-          } as LLMResponse;
-        } else {
-          // エラーシミュレーション (10% の確率)
-          throw new Error(`APIエラーが発生しました`);
-        }
+        const response = await fetchOpenRouterLLMResponse(content, modelId);
+        return response;
       } catch (error) {
         return {
           message:

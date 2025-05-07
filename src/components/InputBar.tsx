@@ -12,7 +12,6 @@ const InputBar = ({ onSubmit, disabled = false }: InputBarProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    // コンポーネントがマウントされたときに入力フィールドにフォーカス
     if (inputRef.current) {
       inputRef.current.focus();
     }

@@ -1,19 +1,15 @@
-// ChatMessageの役割（ユーザーかアシスタント）
 export type ChatRole = "user" | "assistant";
 
-// チャットメッセージの型
 export type ChatMessage = {
   id: string;
   content: string;
   role: ChatRole;
   timestamp: number;
-  model?: string; // AIモデル識別子（アシスタントメッセージのみ）
+  model?: string;
 };
 
-// チャットスペースのサイズ定義
 export type SpaceSize = "small" | "medium" | "large";
 
-// チャットスペースの型
 export type ChatSpace = {
   id: string;
   messages: ChatMessage[];
@@ -36,16 +32,15 @@ export type LLMError = {
   provider: LLMProvider;
 };
 
-// OpenRouterモデルの価格情報
 export type ModelPricing = {
   prompt: number;
   completion: number;
 };
 
-// OpenRouter APIから取得するモデル情報
 export type OpenRouterModel = {
   id: string;
   name: string;
   description: string;
   context_length: number;
+  pricing: ModelPricing;
 };
