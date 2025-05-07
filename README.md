@@ -1,36 +1,21 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# lloom
 
-## Getting Started
+lloomは複数のLLM APIと並行して対話できるチャットインターフェースです。シンプルで使いやすい設計により、異なるモデル間での応答の比較や検証が容易に行えます。
 
-First, run the development server:
+## 特徴
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- **マルチモデル対応**: 複数のLLMモデルと同時に対話可能
+- **並列処理**: 入力したプロンプトを複数のモデルに同時に送信し、効率的に応答を取得
+- **柔軟なレイアウト**: チャットスペースの追加・削除が自由に行え、必要に応じて画面構成をカスタマイズ可能
+- **システムプロンプト**: 個別のチャットスペースごと、または全体でシステムプロンプトを設定可能
+- **履歴管理**: チャット履歴のコピーやエクスポートが可能
+- **使いやすいUI**: Material Designベースの直感的なインターフェース
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 使い方
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. 「+」ボタンをクリックして新しいチャットスペースを追加
+2. 各チャットスペースでモデルを選択
+3. 必要に応じてシステムプロンプトを設定
+4. メッセージを入力して送信（複数のスペースが存在する場合、全てのスペースに同時に送信されます）
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+![demo](./public/demo.png)
