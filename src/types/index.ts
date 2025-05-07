@@ -8,7 +8,16 @@ export type ChatMessage = {
   model?: string;
 };
 
-export type SpaceSize = "small" | "medium" | "large";
+// カスタムサイズの設定
+export type SpaceSize = {
+  width: string;
+  height: string;
+};
+
+// アプリケーション全体の設定
+export type AppSettings = {
+  spaceSize: SpaceSize;
+};
 
 export type ChatSpace = {
   id: string;
@@ -16,7 +25,6 @@ export type ChatSpace = {
   loading: boolean;
   error: string | null;
   selectedModel: string;
-  size: SpaceSize; // 表示サイズの設定を追加
 };
 
 export type LLMProvider = "openrouter";

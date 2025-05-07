@@ -6,9 +6,11 @@ import {
   OpenRouterModel,
   LLMResponse,
   LLMError,
-  SpaceSize,
 } from "../types";
-import { fetchAvailableModels, fetchOpenRouterLLMResponse } from "@/services/llmService";
+import {
+  fetchAvailableModels,
+  fetchOpenRouterLLMResponse,
+} from "@/services/llmService";
 
 const fetchModels = async (): Promise<OpenRouterModel[]> => {
   const models = await fetchAvailableModels();
@@ -23,7 +25,6 @@ const fetchModels = async (): Promise<OpenRouterModel[]> => {
     }
     return true;
   });
-  console.log("利用可能なモデル:", freeModels);
 
   return freeModels;
 };
@@ -84,7 +85,6 @@ export const useChatStore = () => {
       loading: false,
       error: null,
       selectedModel: availableModels[0].id,
-      size: "medium", // デフォルトサイズを追加
     };
 
     setChatSpaces((prev) => [...prev, newSpace]);
@@ -119,21 +119,6 @@ export const useChatStore = () => {
           return {
             ...space,
             selectedModel: modelId,
-          };
-        }
-        return space;
-      })
-    );
-  }, []);
-
-  // チャットスペースのサイズを変更する
-  const changeSpaceSize = useCallback((id: string, size: SpaceSize) => {
-    setChatSpaces((prev) =>
-      prev.map((space) => {
-        if (space.id === id) {
-          return {
-            ...space,
-            size,
           };
         }
         return space;
@@ -313,7 +298,6 @@ export const useChatStore = () => {
     clearChatSpace,
     sendMessage,
     changeModel,
-    changeSpaceSize,
     loadAvailableModels,
     copySpaceHistory,
     exportAllHistory,

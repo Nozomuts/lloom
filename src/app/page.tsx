@@ -24,7 +24,9 @@ import {
 import AddIcon from "@mui/icons-material/Add";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
+import SettingsIcon from "@mui/icons-material/Settings";
 import { useChatStore } from "../hooks/useChatStore";
+import { useAppSettings } from "../hooks/useAppSettings";
 import dynamic from "next/dynamic";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 
@@ -87,11 +89,12 @@ const Home = () => {
     clearChatSpace,
     sendMessage,
     changeModel,
-    changeSpaceSize,
     loadAvailableModels,
     copySpaceHistory,
     exportAllHistory,
   } = useChatStore();
+
+  const { settings, updateSpaceSize } = useAppSettings();
 
   const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -101,6 +104,9 @@ const Home = () => {
   const [exportFilename, setExportFilename] = useState(
     `chat_export_${new Date().toISOString().split("T")[0]}.md`
   );
+  const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
+  const [tempSettings, setTempSettings] = useState(settings);
+  const [selectedChatId, setSelectedChatId] = useState<string>();
 
   // 初期のモデル一覧を読み込み
   useEffect(() => {
@@ -114,9 +120,25 @@ const Home = () => {
     }
   }, [availableModels.length, chatSpaces.length, addChatSpace]);
 
-  const handleSendMessage = (content: string) => {
-    // すべてのチャットスペースに同じプロンプトを送信
-    sendMessage(content);
+  // 設定が変更されたとき、一時設定を更新
+  useEffect(() => {
+    setTempSettings(settings);
+  }, [settings]);
+
+  const handleSendMessage = (content: string, targetSpaceId?: string) => {
+    if (targetSpaceId) {
+      // 個別のチャットスペースにのみメッセージを送信
+      const space = chatSpaces.find((space) => space.id === targetSpaceId);
+      if (space) {
+        // ここで個別チャットに対する送信を実装
+        // カスタム実装が必要な場合は、useChatStore内に新しい関数を追加する
+        // 現時点ではシンプルにメッセージ送信を使用
+        sendMessage(content);
+      }
+    } else {
+      // すべてのチャットスペースに同じプロンプトを送信（既存の動作）
+      sendMessage(content);
+    }
   };
 
   // メニューを開く
@@ -152,6 +174,25 @@ const Home = () => {
       setSnackbarOpen(true);
     }
     handleMenuClose();
+  };
+
+  // 設定ダイアログを開く
+  const handleOpenSettings = () => {
+    setSettingsDialogOpen(true);
+    handleMenuClose();
+  };
+
+  // 設定ダイアログを閉じる
+  const handleCloseSettings = () => {
+    setSettingsDialogOpen(false);
+  };
+
+  // 設定を保存する
+  const handleSaveSettings = () => {
+    updateSpaceSize(tempSettings.spaceSize);
+    setSettingsDialogOpen(false);
+    setSnackbarMessage("設定を保存しました");
+    setSnackbarOpen(true);
   };
 
   // エクスポートダイアログの閉じる
@@ -190,6 +231,15 @@ const Home = () => {
     }
   };
 
+  // 選択されたチャットを変更する
+  const handleSelectChat = (chatId: string | null) => {
+    if (chatId === null) {
+      setSelectedChatId(undefined);
+      return;
+    }
+    setSelectedChatId(chatId);
+  };
+
   const isAnyLoading = chatSpaces.some((space) => space.loading) || loading;
 
   return (
@@ -220,6 +270,10 @@ const Home = () => {
               open={Boolean(menuAnchorEl)}
               onClose={handleMenuClose}
             >
+              <MenuItem onClick={handleOpenSettings}>
+                <SettingsIcon fontSize="small" sx={{ mr: 1 }} />
+                サイズ設定
+              </MenuItem>
               <MenuItem
                 onClick={handleExportAllHistory}
                 disabled={chatSpaces.every((s) => s.messages.length === 0)}
@@ -305,9 +359,9 @@ const Home = () => {
                   onRemove={removeChatSpace}
                   onClear={clearChatSpace}
                   onModelChange={changeModel}
-                  onSizeChange={changeSpaceSize}
                   onCopyHistory={handleCopyHistory}
                   availableModels={availableModels}
+                  spaceSize={settings.spaceSize}
                 />
               ))}
             </Box>
@@ -317,7 +371,63 @@ const Home = () => {
         <InputBar
           onSubmit={handleSendMessage}
           disabled={isAnyLoading || chatSpaces.length === 0}
+          loading={isAnyLoading}
+          chatSpaces={chatSpaces}
+          selectedChatId={selectedChatId}
+          onSelectChat={handleSelectChat}
         />
+
+        {/* サイズ設定ダイアログ */}
+        <Dialog
+          open={settingsDialogOpen}
+          onClose={handleCloseSettings}
+          maxWidth="sm"
+          fullWidth
+        >
+          <DialogTitle>チャットスペースのサイズ設定</DialogTitle>
+          <DialogContent>
+            <Box sx={{ my: 2 }}>
+              <TextField
+                fullWidth
+                label="幅"
+                value={tempSettings.spaceSize.width}
+                onChange={(e) =>
+                  setTempSettings({
+                    ...tempSettings,
+                    spaceSize: {
+                      ...tempSettings.spaceSize,
+                      width: e.target.value,
+                    },
+                  })
+                }
+                margin="normal"
+                helperText="例: 300px, 50%, 30vw など"
+              />
+              <TextField
+                fullWidth
+                label="高さ"
+                value={tempSettings.spaceSize.height}
+                onChange={(e) =>
+                  setTempSettings({
+                    ...tempSettings,
+                    spaceSize: {
+                      ...tempSettings.spaceSize,
+                      height: e.target.value,
+                    },
+                  })
+                }
+                margin="normal"
+                helperText="例: 320px, 40vh など"
+              />
+            </Box>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseSettings}>キャンセル</Button>
+            <Button onClick={handleSaveSettings} variant="contained">
+              保存
+            </Button>
+          </DialogActions>
+        </Dialog>
 
         {/* チャット履歴エクスポートダイアログ */}
         <Dialog

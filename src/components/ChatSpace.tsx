@@ -19,7 +19,6 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import ClearAllIcon from "@mui/icons-material/ClearAll";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
-import AspectRatioIcon from "@mui/icons-material/AspectRatio";
 import {
   ChatSpace as ChatSpaceType,
   ChatMessage,
@@ -33,9 +32,9 @@ type ChatSpaceProps = {
   onRemove: (id: string) => void;
   onClear: (id: string) => void;
   onModelChange: (id: string, modelId: string) => void;
-  onSizeChange: (id: string, size: SpaceSize) => void;
   onCopyHistory: (id: string) => Promise<void>;
   availableModels: OpenRouterModel[];
+  spaceSize: SpaceSize;
 };
 
 type MessageBubbleProps = {
@@ -119,9 +118,9 @@ const ChatSpace = memo(
     onRemove,
     onClear,
     onModelChange,
-    onSizeChange,
     onCopyHistory,
     availableModels,
+    spaceSize,
   }: ChatSpaceProps) => {
     const [menuAnchorEl, setMenuAnchorEl] = React.useState<null | HTMLElement>(
       null
@@ -143,42 +142,10 @@ const ChatSpace = memo(
       onModelChange(space.id, event.target.value);
     };
 
-    // サイズ変更ハンドラー
-    const handleSizeChange = (size: SpaceSize) => {
-      onSizeChange(space.id, size);
-      handleMenuClose();
-    };
-
     // チャット履歴をコピーする
     const handleCopyHistory = () => {
       onCopyHistory(space.id);
       handleMenuClose();
-    };
-
-    // サイズに応じた高さを計算
-    const getHeightBySize = () => {
-      switch (space.size) {
-        case "small":
-          return "240px";
-        case "large":
-          return "480px";
-        case "medium":
-        default:
-          return "320px";
-      }
-    };
-
-    // サイズに応じた幅を計算
-    const getWidthBySize = () => {
-      switch (space.size) {
-        case "small":
-          return { xs: "100%", sm: "47%", md: "30%", lg: "22%" };
-        case "large":
-          return { xs: "100%", sm: "100%", md: "63%", lg: "48%" };
-        case "medium":
-        default:
-          return { xs: "100%", sm: "47%", md: "30%", lg: "22%" };
-      }
     };
 
     return (
@@ -188,9 +155,7 @@ const ChatSpace = memo(
           p: 2.5,
           mb: 3,
           borderRadius: 2,
-          maxWidth: "100%",
-          minWidth: { xs: "100%", sm: "330px" },
-          width: getWidthBySize(),
+          width: spaceSize.width,
           position: "relative",
           display: "flex",
           flexDirection: "column",
@@ -276,18 +241,6 @@ const ChatSpace = memo(
               open={isMenuOpen}
               onClose={handleMenuClose}
             >
-              <MenuItem onClick={() => handleSizeChange("small")}>
-                <AspectRatioIcon fontSize="small" sx={{ mr: 1 }} />
-                小サイズ
-              </MenuItem>
-              <MenuItem onClick={() => handleSizeChange("medium")}>
-                <AspectRatioIcon fontSize="small" sx={{ mr: 1 }} />
-                中サイズ
-              </MenuItem>
-              <MenuItem onClick={() => handleSizeChange("large")}>
-                <AspectRatioIcon fontSize="small" sx={{ mr: 1 }} />
-                大サイズ
-              </MenuItem>
               <MenuItem
                 onClick={handleCopyHistory}
                 disabled={space.messages.length === 0}
@@ -320,7 +273,7 @@ const ChatSpace = memo(
         <Box
           sx={{
             flexGrow: 1,
-            height: getHeightBySize(),
+            height: spaceSize.height,
             overflowY: "auto",
             p: 1,
             display: "flex",
