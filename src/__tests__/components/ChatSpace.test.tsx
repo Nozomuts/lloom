@@ -2,168 +2,206 @@ import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import ChatSpace from "../../components/ChatSpace";
-import { ChatSpace as ChatSpaceType, OpenRouterModel } from "../../types";
+import { ChatSpace as ChatSpaceType, ChatMessage } from '../../types';
 
-// モックデータ
-const mockChatSpace: ChatSpaceType = {
-  id: "123",
-  messages: [
+describe('ChatSpace Component', () => {
+  // モックの関数を作成
+  const onRemoveMock = jest.fn();
+  const onClearMock = jest.fn();
+  const onModelChangeMock = jest.fn();
+  const onSizeChangeMock = jest.fn(); // 追加
+  const onCopyHistoryMock = jest.fn(); // 追加
+
+  // テスト用のメッセージ配列
+  const testMessages: ChatMessage[] = [
     {
-      id: "1",
-      content: "Hello, how can I help you?",
-      role: "assistant",
-      model: "openai (gpt-4)",
-      timestamp: Date.now() - 1000,
+      id: '1',
+      content: 'Hello, how are you?',
+      role: 'user',
+      timestamp: 1620000000000,
     },
     {
-      id: "2",
-      content: "What is the capital of France?",
-      role: "user",
-      timestamp: Date.now(),
+      id: '2',
+      content: 'I am fine, thank you!',
+      role: 'assistant',
+      model: 'gpt-4',
+      timestamp: 1620000060000,
     },
-  ],
-  loading: false,
-  error: null,
-  selectedModel: "anthropic/claude-3-opus",
-};
+  ];
 
-// モックモデルデータ
-const mockModels: OpenRouterModel[] = [
-  {
-    id: "anthropic/claude-3-opus",
-    name: "Claude 3 Opus",
-    description: "Anthropic社の最新モデル",
-    context_length: 100000,
-    pricing: {
-      prompt: 0.00015,
-      completion: 0.00075,
+  // テスト用のモデル配列
+  const testModels = [
+    {
+      id: 'model1',
+      name: 'Model 1',
+      description: 'Test Model 1',
+      context_length: 4000,
+      pricing: {
+        prompt: 0.01,
+        completion: 0.01,
+      },
     },
-  },
-  {
-    id: "openai/gpt-4o",
-    name: "GPT-4o",
-    description: "OpenAIの最新モデル",
-    context_length: 128000,
-    pricing: {
-      prompt: 0.00001,
-      completion: 0.00003,
+    {
+      id: 'model2',
+      name: 'Model 2',
+      description: 'Test Model 2',
+      context_length: 8000,
+      pricing: {
+        prompt: 0.02,
+        completion: 0.02,
+      },
     },
-  },
-];
+  ];
 
-// モック関数
-const mockOnRemove = jest.fn();
-const mockOnClear = jest.fn();
-const mockOnModelChange = jest.fn();
+  // テスト用のChatSpaceオブジェクト
+  const testChatSpace: ChatSpaceType = {
+    id: 'test-space',
+    messages: testMessages,
+    loading: false,
+    error: null,
+    selectedModel: 'model1',
+    size: 'medium', // 追加
+  };
 
-describe("ChatSpace", () => {
+  // 各テスト前にモック関数をリセット
   beforeEach(() => {
-    jest.clearAllMocks();
+    onRemoveMock.mockClear();
+    onClearMock.mockClear();
+    onModelChangeMock.mockClear();
+    onSizeChangeMock.mockClear(); // 追加
+    onCopyHistoryMock.mockClear(); // 追加
   });
 
-  test("renders chat messages correctly", () => {
+  it('renders messages correctly', () => {
     render(
       <ChatSpace
-        space={mockChatSpace}
-        onRemove={mockOnRemove}
-        onClear={mockOnClear}
-        onModelChange={mockOnModelChange}
-        availableModels={mockModels}
+        space={testChatSpace}
+        onRemove={onRemoveMock}
+        onClear={onClearMock}
+        onModelChange={onModelChangeMock}
+        onSizeChange={onSizeChangeMock} // 追加
+        onCopyHistory={onCopyHistoryMock} // 追加
+        availableModels={testModels}
       />
     );
 
-    // ユーザーメッセージが表示されていることを確認
-    expect(
-      screen.getByText("What is the capital of France?")
-    ).toBeInTheDocument();
-
-    // アシスタントメッセージが表示されていることを確認
-    expect(screen.getByText("Hello, how can I help you?")).toBeInTheDocument();
-
-    // モデル名が表示されていることを確認
-    expect(screen.getByText("openai (gpt-4)")).toBeInTheDocument();
+    // ユーザーのメッセージが表示されることを確認
+    expect(screen.getByText('Hello, how are you?')).toBeInTheDocument();
+    // アシスタントの応答が表示されることを確認
+    expect(screen.getByText('I am fine, thank you!')).toBeInTheDocument();
+    // モデル名が表示されることを確認
+    expect(screen.getByText('gpt-4')).toBeInTheDocument();
   });
 
-  test("calls onRemove when delete button is clicked", () => {
+  it('calls onRemove when delete button is clicked', () => {
     render(
       <ChatSpace
-        space={mockChatSpace}
-        onRemove={mockOnRemove}
-        onClear={mockOnClear}
-        onModelChange={mockOnModelChange}
-        availableModels={mockModels}
+        space={testChatSpace}
+        onRemove={onRemoveMock}
+        onClear={onClearMock}
+        onModelChange={onModelChangeMock}
+        onSizeChange={onSizeChangeMock} // 追加
+        onCopyHistory={onCopyHistoryMock} // 追加
+        availableModels={testModels}
       />
     );
 
-    // 削除ボタンをクリック
-    const deleteButton = screen.getByTestId("DeleteIcon").closest("button");
-    if (deleteButton) {
-      fireEvent.click(deleteButton);
-    }
+    // 削除ボタンを探してクリック
+    const deleteButton = screen.getByTitle('チャットスペースを削除');
+    fireEvent.click(deleteButton);
 
-    // onRemoveが呼ばれることを確認
-    expect(mockOnRemove).toHaveBeenCalledWith("123");
+    // onRemove関数がChatSpaceのIDで呼び出されたことを確認
+    expect(onRemoveMock).toHaveBeenCalledWith('test-space');
   });
 
-  test("calls onClear when clear button is clicked", () => {
+  it('calls onClear when clear button is clicked', () => {
     render(
       <ChatSpace
-        space={mockChatSpace}
-        onRemove={mockOnRemove}
-        onClear={mockOnClear}
-        onModelChange={mockOnModelChange}
-        availableModels={mockModels}
+        space={testChatSpace}
+        onRemove={onRemoveMock}
+        onClear={onClearMock}
+        onModelChange={onModelChangeMock}
+        onSizeChange={onSizeChangeMock} // 追加
+        onCopyHistory={onCopyHistoryMock} // 追加
+        availableModels={testModels}
       />
     );
-    // クリアボタンをクリック
-    const clearButton = screen.getByTestId("ClearAllIcon").closest("button");
-    if (clearButton) {
-      fireEvent.click(clearButton);
-    }
 
-    // onClearが呼ばれることを確認
-    expect(mockOnClear).toHaveBeenCalledWith("123");
+    // クリアボタンを探してクリック
+    const clearButton = screen.getByTitle('会話をクリア');
+    fireEvent.click(clearButton);
+
+    // onClear関数がChatSpaceのIDで呼び出されたことを確認
+    expect(onClearMock).toHaveBeenCalledWith('test-space');
   });
 
-  test("displays loading indicator when loading is true", () => {
-    const loadingSpace = {
-      ...mockChatSpace,
+  it('shows loading indicator when space is loading', () => {
+    const loadingChatSpace = {
+      ...testChatSpace,
       loading: true,
     };
 
     render(
       <ChatSpace
-        space={loadingSpace}
-        onRemove={mockOnRemove}
-        onClear={mockOnClear}
-        onModelChange={mockOnModelChange}
-        availableModels={mockModels}
+        space={loadingChatSpace}
+        onRemove={onRemoveMock}
+        onClear={onClearMock}
+        onModelChange={onModelChangeMock}
+        onSizeChange={onSizeChangeMock} // 追加
+        onCopyHistory={onCopyHistoryMock} // 追加
+        availableModels={testModels}
       />
     );
 
-    // ローディングインジケータが表示されることを確認
-    expect(screen.getByRole("progressbar")).toBeInTheDocument();
+    // ローディングインジケーターが表示されることを確認（CircularProgress）
+    const loadingIndicator = document.querySelector('.MuiCircularProgress-root');
+    expect(loadingIndicator).toBeInTheDocument();
   });
 
-  test("displays error message when there is an error", () => {
-    const errorSpace = {
-      ...mockChatSpace,
-      error: "Failed to fetch response",
+  it('shows error message when there is an error', () => {
+    const errorChatSpace = {
+      ...testChatSpace,
+      error: 'Something went wrong',
     };
 
     render(
       <ChatSpace
-        space={errorSpace}
-        onRemove={mockOnRemove}
-        onClear={mockOnClear}
-        onModelChange={mockOnModelChange}
-        availableModels={mockModels}
+        space={errorChatSpace}
+        onRemove={onRemoveMock}
+        onClear={onClearMock}
+        onModelChange={onModelChangeMock}
+        onSizeChange={onSizeChangeMock} // 追加
+        onCopyHistory={onCopyHistoryMock} // 追加
+        availableModels={testModels}
       />
     );
 
     // エラーメッセージが表示されることを確認
-    expect(
-      screen.getByText("Error: Failed to fetch response")
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Something went wrong/i)).toBeInTheDocument();
+  });
+
+  // 新しいテスト: サイズ変更メニューをテスト
+  it('opens size menu when options button is clicked', () => {
+    render(
+      <ChatSpace
+        space={testChatSpace}
+        onRemove={onRemoveMock}
+        onClear={onClearMock}
+        onModelChange={onModelChangeMock}
+        onSizeChange={onSizeChangeMock}
+        onCopyHistory={onCopyHistoryMock}
+        availableModels={testModels}
+      />
+    );
+
+    // オプションボタンを探してクリック
+    const optionsButton = screen.getByLabelText('オプション');
+    fireEvent.click(optionsButton);
+
+    // メニューが表示されることを確認
+    expect(screen.getByText('小サイズ')).toBeInTheDocument();
+    expect(screen.getByText('中サイズ')).toBeInTheDocument();
+    expect(screen.getByText('大サイズ')).toBeInTheDocument();
+    expect(screen.getByText('履歴をコピー')).toBeInTheDocument();
   });
 });

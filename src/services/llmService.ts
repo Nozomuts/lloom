@@ -117,20 +117,12 @@ const mockModels: OpenRouterModel[] = [
     name: "Claude 3 Opus",
     description: "Anthropic社の最新モデル。正確性と高度な推論に優れています。",
     context_length: 200000,
-    pricing: {
-      prompt: 0.00015,
-      completion: 0.00075,
-    },
   },
   {
     id: "anthropic/claude-3-sonnet",
     name: "Claude 3 Sonnet",
     description: "バランスの取れた高性能モデル。多くのタスクに適しています。",
     context_length: 180000,
-    pricing: {
-      prompt: 0.00003,
-      completion: 0.00015,
-    },
   },
   {
     id: "google/gemini-1.5-pro",
@@ -138,20 +130,12 @@ const mockModels: OpenRouterModel[] = [
     description:
       "Googleの最新マルチモーダルモデル。様々な種類のデータを処理できます。",
     context_length: 1000000,
-    pricing: {
-      prompt: 0.00001,
-      completion: 0.00001,
-    },
   },
   {
     id: "openai/gpt-4o",
     name: "GPT-4o",
     description: "OpenAIの最新モデル。広範なタスクに対応しています。",
     context_length: 128000,
-    pricing: {
-      prompt: 0.00001,
-      completion: 0.00003,
-    },
   },
   {
     id: "meta-llama/llama-3-70b-instruct",
@@ -159,19 +143,11 @@ const mockModels: OpenRouterModel[] = [
     description:
       "Metaの大規模オープンモデル。様々なタスクに高い性能を発揮します。",
     context_length: 8192,
-    pricing: {
-      prompt: 0.0000005,
-      completion: 0.0000015,
-    },
   },
   {
     id: "mistralai/mistral-large",
     name: "Mistral Large",
     description: "Mistralの最新モデル。高性能で高速な推論が可能です。",
     context_length: 32768,
-    pricing: {
-      prompt: 0.000002,
-      completion: 0.000008,
-    },
   },
 ];

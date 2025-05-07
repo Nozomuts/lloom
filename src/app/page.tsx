@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   AppBar,
   Toolbar,
@@ -9,8 +9,21 @@ import {
   Box,
   Container,
   CircularProgress,
+  Menu,
+  MenuItem,
+  Snackbar,
+  Alert,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Button,
+  TextField,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
+import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import { useChatStore } from "../hooks/useChatStore";
 import dynamic from "next/dynamic";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
@@ -74,8 +87,18 @@ const Home = () => {
     clearChatSpace,
     sendMessage,
     changeModel,
+    changeSpaceSize,
     loadAvailableModels,
+    copySpaceHistory,
+    exportAllHistory,
   } = useChatStore();
+
+  const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
+  const [exportedContent, setExportedContent] = useState("");
+  const [exportFilename, setExportFilename] = useState(`chat_export_${new Date().toISOString().split('T')[0]}.md`);
 
   // 初期のモデル一覧を読み込み
   useEffect(() => {
@@ -94,6 +117,75 @@ const Home = () => {
     sendMessage(content);
   };
 
+  // メニューを開く
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setMenuAnchorEl(event.currentTarget);
+  };
+
+  // メニューを閉じる
+  const handleMenuClose = () => {
+    setMenuAnchorEl(null);
+  };
+
+  // スナックバーを閉じる
+  const handleSnackbarClose = () => {
+    setSnackbarOpen(false);
+  };
+
+  // チャット履歴の特定のスペースのコピー
+  const handleCopyHistory = async (id: string) => {
+    await copySpaceHistory(id);
+    setSnackbarMessage("チャット履歴をクリップボードにコピーしました");
+    setSnackbarOpen(true);
+  };
+
+  // すべてのチャット履歴のエクスポート
+  const handleExportAllHistory = async () => {
+    const history = await exportAllHistory();
+    if (history) {
+      setExportedContent(history);
+      setExportDialogOpen(true);
+    } else {
+      setSnackbarMessage("エクスポートするチャット履歴がありません");
+      setSnackbarOpen(true);
+    }
+    handleMenuClose();
+  };
+
+  // エクスポートダイアログの閉じる
+  const handleExportDialogClose = () => {
+    setExportDialogOpen(false);
+  };
+
+  // ファイルとしてダウンロード
+  const handleDownloadExport = () => {
+    const blob = new Blob([exportedContent], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = exportFilename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    setExportDialogOpen(false);
+    setSnackbarMessage("チャット履歴をファイルにエクスポートしました");
+    setSnackbarOpen(true);
+  };
+
+  // エクスポートのコピー
+  const handleCopyExport = async () => {
+    try {
+      await navigator.clipboard.writeText(exportedContent);
+      setSnackbarMessage("すべてのチャット履歴をクリップボードにコピーしました");
+      setSnackbarOpen(true);
+      setExportDialogOpen(false);
+    } catch {
+      setSnackbarMessage("クリップボードへのコピーに失敗しました");
+      setSnackbarOpen(true);
+    }
+  };
+
   const isAnyLoading = chatSpaces.some((space) => space.loading) || loading;
 
   return (
@@ -108,6 +200,27 @@ const Home = () => {
             >
               lloom
             </Typography>
+            <IconButton
+              aria-label="メニュー"
+              onClick={handleMenuOpen}
+              sx={{
+                color: "#666666",
+                mr: 1,
+                "&:hover": { color: "#333333" },
+              }}
+            >
+              <MoreVertIcon />
+            </IconButton>
+            <Menu
+              anchorEl={menuAnchorEl}
+              open={Boolean(menuAnchorEl)}
+              onClose={handleMenuClose}
+            >
+              <MenuItem onClick={handleExportAllHistory} disabled={chatSpaces.every(s => s.messages.length === 0)}>
+                <FileDownloadIcon fontSize="small" sx={{ mr: 1 }} />
+                すべての履歴をエクスポート
+              </MenuItem>
+            </Menu>
             <IconButton
               color="primary"
               aria-label="新しいチャットスペース"
@@ -179,22 +292,16 @@ const Home = () => {
               }}
             >
               {chatSpaces.map((space) => (
-                <Box
+                <ChatSpace
                   key={space.id}
-                  sx={{
-                    width: { xs: "100%", sm: "47%", md: "30%", lg: "22%" },
-                    display: "flex",
-                    mb: 2,
-                  }}
-                >
-                  <ChatSpace
-                    space={space}
-                    onRemove={removeChatSpace}
-                    onClear={clearChatSpace}
-                    onModelChange={changeModel}
-                    availableModels={availableModels}
-                  />
-                </Box>
+                  space={space}
+                  onRemove={removeChatSpace}
+                  onClear={clearChatSpace}
+                  onModelChange={changeModel}
+                  onSizeChange={changeSpaceSize}
+                  onCopyHistory={handleCopyHistory}
+                  availableModels={availableModels}
+                />
               ))}
             </Box>
           )}
@@ -204,6 +311,67 @@ const Home = () => {
           onSubmit={handleSendMessage}
           disabled={isAnyLoading || chatSpaces.length === 0}
         />
+
+        {/* チャット履歴エクスポートダイアログ */}
+        <Dialog
+          open={exportDialogOpen}
+          onClose={handleExportDialogClose}
+          fullWidth
+          maxWidth="md"
+        >
+          <DialogTitle>チャット履歴のエクスポート</DialogTitle>
+          <DialogContent>
+            <DialogContentText sx={{ mb: 2 }}>
+              以下のチャット履歴をファイルとしてダウンロードするか、クリップボードにコピーすることができます。
+            </DialogContentText>
+            <TextField
+              label="ファイル名"
+              fullWidth
+              value={exportFilename}
+              onChange={(e) => setExportFilename(e.target.value)}
+              margin="normal"
+              variant="outlined"
+              size="small"
+            />
+            <TextField
+              multiline
+              fullWidth
+              variant="outlined"
+              value={exportedContent}
+              onChange={(e) => setExportedContent(e.target.value)}
+              minRows={10}
+              maxRows={20}
+              sx={{ mt: 2, fontFamily: "monospace" }}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleExportDialogClose} color="primary">
+              キャンセル
+            </Button>
+            <Button onClick={handleCopyExport} color="primary">
+              クリップボードにコピー
+            </Button>
+            <Button onClick={handleDownloadExport} color="primary">
+              ダウンロード
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* 通知スナックバー */}
+        <Snackbar
+          open={snackbarOpen}
+          autoHideDuration={3000}
+          onClose={handleSnackbarClose}
+          anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+        >
+          <Alert
+            onClose={handleSnackbarClose}
+            severity="success"
+            sx={{ width: "100%" }}
+          >
+            {snackbarMessage}
+          </Alert>
+        </Snackbar>
       </Box>
     </ThemeProvider>
   );
