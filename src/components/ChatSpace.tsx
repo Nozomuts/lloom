@@ -198,9 +198,18 @@ const ChatSpace = memo(
             justifyContent: "space-between",
             mb: 2,
             alignItems: "center",
+            width: "100%",
           }}
         >
-          <FormControl size="small" sx={{ minWidth: 120, flexGrow: 1, mr: 1 }}>
+          <FormControl
+            size="small"
+            sx={{
+              minWidth: 100,
+              flexGrow: 1,
+              flexShrink: 1,
+              mr: 1,
+            }}
+          >
             <InputLabel id={`model-select-label-${space.id}`}>
               モデル
             </InputLabel>
@@ -226,7 +235,7 @@ const ChatSpace = memo(
               ))}
             </Select>
           </FormControl>
-          <Box>
+          <Box sx={{ display: "flex", flexShrink: 0 }}>
             <Tooltip title="オプション">
               <IconButton
                 aria-label="オプション"
