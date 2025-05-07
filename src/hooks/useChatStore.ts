@@ -31,12 +31,16 @@ const fetchModels = async (): Promise<OpenRouterModel[]> => {
 
 const sendPromptToModels = async (
   content: string,
-  modelIds: string[]
+  requests: Array<{ modelId: string; systemPrompt?: string }> // 変更: systemPrompt を追加
 ): Promise<(LLMResponse | LLMError)[]> => {
   return Promise.all(
-    modelIds.map(async (modelId) => {
+    requests.map(async (request) => { // 変更: request オブジェクトを使用
       try {
-        const response = await fetchOpenRouterLLMResponse(content, modelId);
+        const response = await fetchOpenRouterLLMResponse(
+          content,
+          request.modelId,
+          request.systemPrompt // 追加: systemPrompt を渡す
+        );
         return response;
       } catch (error) {
         return {
@@ -85,6 +89,7 @@ export const useChatStore = () => {
       loading: false,
       error: null,
       selectedModel: availableModels[0].id,
+      systemPrompt: "", // 追加: systemPrompt を初期化
     };
 
     setChatSpaces((prev) => [...prev, newSpace]);
@@ -126,6 +131,21 @@ export const useChatStore = () => {
     );
   }, []);
 
+  // システムプロンプトを変更する
+  const changeSystemPrompt = useCallback((id: string, systemPrompt: string) => {
+    setChatSpaces((prev) =>
+      prev.map((space) => {
+        if (space.id === id) {
+          return {
+            ...space,
+            systemPrompt,
+          };
+        }
+        return space;
+      })
+    );
+  }, []);
+
   // メッセージを送信する
   const sendMessage = useCallback(
     async (content: string) => {
@@ -147,6 +167,7 @@ export const useChatStore = () => {
       const modelRequests = chatSpaces.map((space) => ({
         spaceId: space.id,
         modelId: space.selectedModel,
+        systemPrompt: space.systemPrompt, // 追加
       }));
 
       // 各チャットスペースにユーザーメッセージを追加し、ローディング状態にする
@@ -163,7 +184,7 @@ export const useChatStore = () => {
         // すべてのモデルにプロンプトを送信
         const responses = await sendPromptToModels(
           content,
-          modelRequests.map((req) => req.modelId)
+          modelRequests.map((req) => ({ modelId: req.modelId, systemPrompt: req.systemPrompt })) // 変更: systemPrompt を渡す
         );
 
         // レスポンスに基づいてそれぞれのチャットスペースを更新
@@ -253,7 +274,8 @@ export const useChatStore = () => {
       try {
         const response = await fetchOpenRouterLLMResponse(
           content,
-          targetSpace.selectedModel
+          targetSpace.selectedModel,
+          targetSpace.systemPrompt // 追加: systemPrompt を渡す
         );
 
         setChatSpaces((prev) =>
@@ -385,5 +407,6 @@ export const useChatStore = () => {
     loadAvailableModels,
     copySpaceHistory,
     exportAllHistory,
+    changeSystemPrompt, // 追加
   };
 };

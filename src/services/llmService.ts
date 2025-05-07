@@ -25,7 +25,8 @@ export const fetchAvailableModels = async (): Promise<OpenRouterModel[]> => {
 
 export const fetchOpenRouterLLMResponse = async (
   content: string,
-  modelId: string
+  modelId: string,
+  systemPrompt?: string // 追加
 ): Promise<LLMResponse> => {
   try {
     const apiKey = getOpenRouterApiKey();
@@ -39,11 +40,17 @@ export const fetchOpenRouterLLMResponse = async (
       };
     }
 
+    const messages: Array<{ role: string; content: string }> = [];
+    if (systemPrompt && systemPrompt.trim() !== "") {
+      messages.push({ role: "system", content: systemPrompt });
+    }
+    messages.push({ role: "user", content });
+
     const response = await axios.post(
       `${API_ENDPOINT}/chat/completions`,
       {
         model: modelId,
-        messages: [{ role: "user", content }],
+        messages, // 変更
       },
       {
         headers: {

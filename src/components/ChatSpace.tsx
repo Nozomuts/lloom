@@ -35,6 +35,7 @@ type ChatSpaceProps = {
   onRemove: (id: string) => void;
   onClear: (id: string) => void;
   onModelChange: (id: string, modelId: string) => void;
+  onSystemPromptChange: (id: string, systemPrompt: string) => void; // 追加
   onCopyHistory: (id: string) => Promise<void>;
   availableModels: OpenRouterModel[];
   spaceSize: SpaceSize;
@@ -122,6 +123,7 @@ const ChatSpace = memo(
     onRemove,
     onClear,
     onModelChange,
+    onSystemPromptChange, // 追加
     onCopyHistory,
     availableModels,
     spaceSize,
@@ -146,6 +148,13 @@ const ChatSpace = memo(
     // モデル変更ハンドラー
     const handleModelChange = (event: SelectChangeEvent) => {
       onModelChange(space.id, event.target.value);
+    };
+
+    // システムプロンプト変更ハンドラー
+    const handleSystemPromptChange = (
+      event: React.ChangeEvent<HTMLInputElement>
+    ) => {
+      onSystemPromptChange(space.id, event.target.value);
     };
 
     // チャット履歴をコピーする
@@ -218,7 +227,7 @@ const ChatSpace = memo(
           sx={{
             display: "flex",
             justifyContent: "space-between",
-            mb: 2,
+            mb: 1, // 変更: マージン調整
             alignItems: "center",
             width: "100%",
           }}
@@ -300,6 +309,27 @@ const ChatSpace = memo(
             </IconButton>
           </Box>
         </Box>
+
+        {/* システムプロンプト入力UI */}
+        <TextField
+          fullWidth
+          label="システムプロンプト (オプション)"
+          variant="outlined"
+          size="small"
+          value={space.systemPrompt || ""}
+          onChange={handleSystemPromptChange}
+          disabled={space.loading || space.messages.length > 0} // 会話開始後は編集不可にする場合
+          multiline
+          rows={2}
+          sx={{
+            mb: 2,
+            "& .MuiOutlinedInput-root": {
+              "&.Mui-focused fieldset": {
+                borderColor: "#555555",
+              },
+            },
+          }}
+        />
 
         <Box
           sx={{

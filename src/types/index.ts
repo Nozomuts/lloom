@@ -25,6 +25,7 @@ export type ChatSpace = {
   loading: boolean;
   error: string | null;
   selectedModel: string;
+  systemPrompt?: string; // 追加
 };
 
 export type LLMProvider = "openrouter";

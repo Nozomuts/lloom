@@ -93,6 +93,7 @@ const Home = () => {
     loadAvailableModels,
     copySpaceHistory,
     exportAllHistory,
+    changeSystemPrompt,
   } = useChatStore();
 
   const { settings, updateSpaceSize } = useAppSettings();
@@ -342,6 +343,7 @@ const Home = () => {
                   availableModels={availableModels}
                   spaceSize={settings.spaceSize}
                   onSendMessage={sendMessageToSpace} // sendMessageToSpace を渡す
+                  onSystemPromptChange={changeSystemPrompt}
                 />
               ))}
             </Box>
